@@ -49,4 +49,7 @@ In approaching this project we began by talking to the Admissions Manager to und
 * Path 0.12.7
 * Promise 7.1.1
 
-Descriptions of any unsolved problems or major hurdles your team had to overcome.
+At this time we do not have any unsolved issues.  Let us know if you find any issues.  
+
+**When a student logs in they will be directed to the student profile page**
+![Student Profile](./images/studentProfile.png)
