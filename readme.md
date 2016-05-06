@@ -53,3 +53,6 @@ At this time we do not have any unsolved issues.  Let us know if you find any is
 
 **When a student logs in they will be directed to the student profile page**
 ![Student Profile](./images/studentProfile.png)
+
+At this time we are not aware of any issues.  Please let us know if you have any problems using our app.   
+

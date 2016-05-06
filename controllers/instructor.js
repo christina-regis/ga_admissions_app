@@ -4,13 +4,12 @@ var passport   = require('passport');
 var db         = require('../config/db');
 require('../config/passport')(passport);
 
-// var mongoose = require('mongoose');
 var controller = {};
 controller.evaluated ={};
 
 controller.index = function(req,res){
 if(req.user !== undefined && req.user.role !=='instructor') res.redirect('/student');
-	User.find({instructor: req.user, role:'student','application.status':'pre evaluation'})
+	User.find({role:'student','application.status':'pre evaluation'})
 	.then(function(students){
 		res.render('instructor/instructor', {user:req.user, students:students});
 	})
@@ -19,6 +18,7 @@ if(req.user !== undefined && req.user.role !=='instructor') res.redirect('/stude
 	});
 };
 
+// Instructor notes from the interview are added into the applicant file.
 controller.update = function(req, res){
 	var currentStudent;
 	User.findById(req.body.student_id)
@@ -42,12 +42,13 @@ controller.update = function(req, res){
 		})
 		.then(function(student){
 			currentStudent = student;
-			return User.findById(student.admissions);
+			console.log(currentStudent.admissions);
+			return User.findById(currentStudent.admissions);
 		})
 		.then(function(admissions){
-			var admissionsEmail =req.user.email; //When ready, set to admissions.ga_email;
+			var admissionsEmail = admissions.ga_email;
 			require('../config/nodemailer')(admissionsEmail,"Student Evaluated",currentStudent.name + " has been evaluated by "+req.user.name+"." ,"<p>" + currentStudent.name + " has been evaluated by "+req.user.name+".</p>");
-			res.redirect('/instructor/students/'+req.body.student_id);
+			res.redirect('/instructor/');
 		})
 		.catch(function(err){
 			throw err;
@@ -55,32 +56,30 @@ controller.update = function(req, res){
 };
 
 controller.show = function(req, res){
-	if(req.user.role !== 'instructor') res.redirect('/student');
+	if(req.user.role !== 'instructor' && req.user.role !== 'admissions') res.redirect('/student');
 	var results;
 	User.findById(req.params.id)
 		.then(function(student){
 			results = student;
-		// 	return Cohort.findOne({students: student});
-		// })
-		// .then(function(cohort){
-		// 	var cohortName = cohort.program+'-'+cohort.campus+'-'+cohort.number;
 			res.render('instructor/student',{ student:results });
-		});
+	});
 };
 
 controller.edit = function(req, res){
-	if(req.user.role !== 'instructor') res.redirect('/student');
+	switch(req.user.role){
+		case 'student': res.redirect('/student');
+		break;
+		case 'admissions': res.redirect('/admissions');
+		break;
+		default: break;
+	}
+
 	var results;
 	User.findById(req.params.id)
 		.then(function(student){
 			results = student;
-		// 	return Cohort.findOne({students: student});
-		// })
-		// .then(function(cohort){
-		// 	var cohortName = cohort.program+'-'+cohort.campus+'-'+cohort.number;
 			res.render('instructor/evaluation',{ student:results });
 		});
-
 };
 
 controller.logout = function(req,res){
@@ -88,9 +87,9 @@ controller.logout = function(req,res){
 	res.redirect('/');
 };
 
-controller.evaluated.index= function(req,res){};
-
-controller.evaluated.show= function(req,res){  //  Status: In /admissions user can click on 'View status' and then be routed to /admissions/status which will run controller.status and render a list of all students with 'application.status': 'evaluated', if any errors are caught in catch and rendered as JSON.
+// Shows all evaluated students
+controller.evaluated.show= function(req,res){
+  
   User.find({role: 'student', 'application.status':'evaluated'})
     .then(function(student) {
       res.render('admissions/status', {student: student});
@@ -98,8 +97,5 @@ controller.evaluated.show= function(req,res){  //  Status: In /admissions user c
       res.json({ error: error });
     });
 };
-
-controller.evaluated.update= function(req,res){};
-controller.evaluated.delete= function(req,res){};
 
 module.exports = controller;
